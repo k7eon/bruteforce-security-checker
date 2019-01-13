@@ -10,7 +10,7 @@ Examples of usage in **/examples** directory
 ### Basic usage {bruteforce}:
 - ```npm i @k7eon/bruteforce-security-checker --save```
 - Create proxy_checker.js and put content below:
-```
+```js
 const brute = require('@k7eon/bruteforce-security-checker').bruteforce;
 const FILE = {
   proxies:        'files/proxy.txt',
