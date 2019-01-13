@@ -16,7 +16,8 @@ const FILE = {
   proxies:        'files/proxy.txt',
   valid_proxies:  'files/valid_proxies.txt',
 };
-// create empty files in they are not exists. Be careful, create directory 'files' if not exists
+// create empty files in they are not exists. Be careful, 
+// create directory 'files' if not exists
 brute.createFilesIfNotExists(FILE);
 
 // For interval showing statistic
@@ -40,7 +41,7 @@ brute.start({
       });
       let host = agent.options.host;
       fs.appendFileSync(FILE.valid_proxies, host+'\n');
-      brute.metrics.active++;                                   // increment metric
+      brute.metrics.active++;  // increment metric
     } catch (e) {
       // there all errors if HTTP layer. 
       // This proxy are not needed.
