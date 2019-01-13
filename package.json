@@ -1,0 +1,19 @@
+{
+  "name": "@k7eon/bruteforce-security-checker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/k7eon/bruteforce-security-checker.git"
+  },
+  "author": "k7eon",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/k7eon/bruteforce-security-checker/issues"
+  },
+  "homepage": "https://github.com/k7eon/bruteforce-security-checker#readme"
+}
