@@ -1,6 +1,6 @@
 {
   "name": "@k7eon/bruteforce-security-checker",
-  "version": "1.0.1",
+  "version": "1.0.10",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -21,6 +21,7 @@
     "fs": "0.0.1-security",
     "lodash": "^4.17.11",
     "request": "^2.88.0",
+    "request-promise": "^4.2.2",
     "socks-proxy-agent": "^4.0.1"
   }
 }

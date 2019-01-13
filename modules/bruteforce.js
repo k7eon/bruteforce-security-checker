@@ -1,10 +1,7 @@
-const _ = require('lodash');
+const _      = require('lodash');
 const fs     = require('fs');
-const SocksProxyAgent = require('socks-proxy-agent');
 const async  = require('async');
-
-// todo put file paths and create files if they are not exists
-// todo store custom metrics and interval show them
+const SocksProxyAgent = require('socks-proxy-agent');
 
 class BruteForce {
   constructor() {
@@ -12,6 +9,45 @@ class BruteForce {
     this.proxies = [];
     this.agents = [];
     this.queue = null;
+
+    this.metrics = {};
+    this.metricsInterval = null;
+  }
+
+  /**
+   *
+   * @param metrics = ['good', 'bad']
+   */
+  setMetrics(metrics) {
+    this.metrics = metrics
+  }
+
+  _getMetrics() {
+    return _.assign(this.metrics, {left: this.queueLeft()});
+  }
+
+  /**
+   * start interval show progress
+   * @param interval - ms, interval of console.log
+   */
+  startShowingMetrics(interval = 10000) {
+    this.metricsInterval = setInterval(() => {
+      console.log(this._getMetrics());
+    }, interval);
+  }
+
+  stopShowingMetrics() {
+    if (!this.metricsInterval) return;
+    console.log(this._getMetrics());
+    clearInterval(this.metricsInterval);
+  }
+
+  createFilesIfNotExists(filesObj) {
+    let paths = _.values(filesObj);
+    for (let path of paths) {
+      if (fs.existsSync(path)) continue;
+      fs.closeSync(fs.openSync(path, 'a'));
+    }
   }
 
   /**
@@ -169,7 +205,7 @@ class BruteForce {
     if (!opts.drainCallback)   throw new Error('drainCallback not defined!');
     if (!opts.useProxy)        opts.useProxy      = false;
 
-    let {THREADS, handlerFunc, whatToQueue, startMessage, drainMessage, drainCallback, useProxy} = opts;
+    let {THREADS, whatToQueue, startMessage, drainMessage, drainCallback, useProxy} = opts;
 
     let source = this[whatToQueue];
     if (!source || !source.length) throw new Error(`Nothing ${whatToQueue} to check`);
@@ -196,6 +232,7 @@ class BruteForce {
 
     this.queue.drain = function() {
       console.log(drainMessage);
+      self.stopShowingMetrics();
       drainCallback();
     };
     this.queue.push(source);
