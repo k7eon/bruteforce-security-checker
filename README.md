@@ -1,9 +1,8 @@
 # bruteforce-security-checker
 
-Благодаря этому модулю можно понять, 
-насколько тяжело осуществить 
-брутфорс атаку (перебор паролей) через http уровень сайта.
-
+By this module you can:
+1. Test site for bruteforce security by implement HTTP/WS login requests
+2. Test site accessibility on mass user signups.
 
 Examples of usage in **/examples** directory
 
