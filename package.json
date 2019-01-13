@@ -15,5 +15,12 @@
   "bugs": {
     "url": "https://github.com/k7eon/bruteforce-security-checker/issues"
   },
-  "homepage": "https://github.com/k7eon/bruteforce-security-checker#readme"
+  "homepage": "https://github.com/k7eon/bruteforce-security-checker#readme",
+  "dependencies": {
+    "async": "^2.6.1",
+    "fs": "0.0.1-security",
+    "lodash": "^4.17.11",
+    "request": "^2.88.0",
+    "socks-proxy-agent": "^4.0.1"
+  }
 }
