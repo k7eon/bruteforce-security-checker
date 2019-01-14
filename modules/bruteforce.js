@@ -15,8 +15,8 @@ class BruteForce {
   }
 
   /**
-   *
-   * @param metrics = ['good', 'bad']
+   * Create metrics object like counter to monitor custom metrics
+   * @param {array} metrics     array of string like ['good', 'bad']
    */
   setMetrics(metrics) {
     this.metrics = metrics
@@ -27,8 +27,8 @@ class BruteForce {
   }
 
   /**
-   * start interval show progress
-   * @param interval - ms, interval of console.log
+   * start interval showing metrics
+   * @param {number} interval    ms, interval of console.log
    */
   startShowingMetrics(interval = 10000) {
     this.metricsInterval = setInterval(() => {
@@ -36,12 +36,17 @@ class BruteForce {
     }, interval);
   }
 
-  stopShowingMetrics() {
+  _stopShowingMetrics() {
     if (!this.metricsInterval) return;
     console.log(this._getMetrics());
     clearInterval(this.metricsInterval);
   }
 
+  /**
+   * Creates files if they are not exists
+   * But directories must be created by hand
+   * @param {object} filesObj     like {loggedIn: './loggedIn.log'}
+   */
   createFilesIfNotExists(filesObj) {
     let paths = _.values(filesObj);
     for (let path of paths) {
@@ -51,10 +56,12 @@ class BruteForce {
   }
 
   /**
+   * // todo universalize
    * parse lines from file and load account to check
    * example of line in file: email@e.mail:mypass
-   * @param path
-   * @return { [{email, password}] }
+   * @param  {string}   path
+   * @param  {boolean}  getLogin=false  need to retrieve login from email, is it?
+   * @return {Array}                    like {email, password}[]
    */
   loadAccounts(path = 'files/source.txt', getLogin = false) {
     let source = fs.readFileSync(path, 'utf8').split('\n');
@@ -81,8 +88,8 @@ class BruteForce {
 
   /**
    * // todo universalize
-   * @param path
-   * @return { [{login, email, password}] }
+   * @param {string] path
+   * @return {Array}   like {login, email, password}[]
    */
   loadRegisteredAccounts(path = 'files/registered.log') {
     let registered = fs.readFileSync(path, 'utf8').split('\n');
@@ -104,9 +111,10 @@ class BruteForce {
   }
 
   /**
-   * remove all lines of this.accounts that includes in 'path' file
-   * @param by
-   * @param path
+   * Remove all lines from this.accounts that includes 'email' attr in 'path' file
+   * Update this.accounts
+   * @param {string} by          any attribute from this.accounts[0]
+   * @param {string} path        path to file whose lines must be removed from this.accounts
    * @return {Array}
    */
   removeAccountsFrom(by='email', path = 'files/bad.log') {
@@ -127,8 +135,10 @@ class BruteForce {
   }
 
   /**
-   *
-   * @param path
+   * todo http proxy support
+   * File contain lines like: "128.12.1.1:1080"
+   * Update this.proxies
+   * @param {string} path
    * @return {Array}
    */
   loadProxies(path = 'files/proxy.txt') {
@@ -141,7 +151,8 @@ class BruteForce {
 
   /**
    * todo http proxy support
-   * @param path
+   * Loading  proxies and generate this.agents whose are used in http request options
+   * @param {string} path
    * @return {Array}
    */
   loadProxyAgents(path = 'files/valid_proxy.txt') {
@@ -155,7 +166,7 @@ class BruteForce {
   }
 
   /**
-   * Return count of left work
+   * Return count of left work in queue
    * @return {number}
    */
   queueLeft() {
@@ -163,7 +174,8 @@ class BruteForce {
   }
 
   /**
-   * @return {*}
+   * this.agents.shift()
+   * @return {Agent | null}
    */
   getAgent() {
     if (this.agents.length === 0) return null;
@@ -171,8 +183,10 @@ class BruteForce {
   }
 
   /**
-   * @param agent
-   * @param timeout
+   * push(agent) after 'timeout'
+   * @param {Agent} agent
+   * @param {number} timeout
+   * @return {undefined}
    */
   returnAgent(agent, timeout = 1) {
     setTimeout(() => {
@@ -181,20 +195,21 @@ class BruteForce {
   }
 
   /**
+   * Start processing
+   * handlerFunc example: async (task,agent)=>{ try/catch, return {agent?} }. if return {agent} then will call this.returnAgent
    *
-   * @param opts = {
-   *   THREADS       - threads amount
-   *   handlerFunc   - example: async (task,agent)=>{ try/catch, return {agent?} }.
-   *                   if return {agent} then will call this.returnAgent
-   *
-   *   whatToQueue   - from this. context. ('accounts'|'agents')
-   *   startMessage  - this will print on bruteforce start checking
-   *
-   *   drainMessage  - this will print when all tasks are processed
-   *   drainCallback - call callback when all tasks are processed
-   *
-   *   useProxy      - is need to return agent to every opts.handlerFunc
+   * opts = {
+   *   {integer}    THREADS         threads amount
+   *   {function}   handlerFunc     required.
+   *   {string}     whatToQueue     from this. context. ('accounts' or 'agents')
+   *   {string}     startMessage    this will print on bruteforce start checking
+   *   {string}     drainMessage    this will print when all tasks are processed
+   *   {function}   drainCallback   required. Callback when all tasks are processed
+   *   {boolean}    useProxy
    * }
+   *
+   * @param {object} opts
+   * @returns {true}
    */
   start(opts) {
     if (!opts.THREADS)         opts.THREADS       = 100;
@@ -232,13 +247,20 @@ class BruteForce {
 
     this.queue.drain = function() {
       console.log(drainMessage);
-      self.stopShowingMetrics();
+      self._stopShowingMetrics();
       drainCallback();
     };
     this.queue.push(source);
     console.log(startMessage);
+    return true;
   }
 
+  /**
+   * Async timeout implementation
+   * Usage: await this.timeout(5000)
+   * @param {number} ms
+   * @return {Promise<any>}
+   */
   timeout(ms) {
     return new Promise(res => setTimeout(res, ms));
   }

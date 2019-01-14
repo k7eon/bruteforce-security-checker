@@ -36,9 +36,9 @@ class Service {
   /**
    * Retrieve sub string by passing 'start' and 'end' substring
    * example: parse('123baaz321', '123', '321') will return 'baaz'
-   * @param source
-   * @param start
-   * @param end
+   * @param {string} source   source string
+   * @param {string} start    start substring
+   * @param {string} end      end substring
    * @return {string}
    */
   parse(source, start, end) {

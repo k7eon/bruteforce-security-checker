@@ -3,3 +3,7 @@ node_modules
 .idea
 .env
 files
+jsdocRender.js
+conf.json
+DOC.md
+package-lock.json
