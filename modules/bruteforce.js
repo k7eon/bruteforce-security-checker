@@ -120,7 +120,7 @@ class BruteForce {
   removeAccountsFrom(by='email', path = 'files/bad.log') {
     if (!this.accounts.length) throw new Error('Load account before remove bad!');
 
-    let bad = fs.readFileSync(badPath, 'utf8');
+    let bad = fs.readFileSync(path, 'utf8');
     let accounts = _.filter(this.accounts, (account) => {
       let thing = account[by];
       return (bad.indexOf(thing) === -1);
