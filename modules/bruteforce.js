@@ -16,7 +16,7 @@ class BruteForce {
 
   /**
    * Create metrics object like counter to monitor custom metrics
-   * @param {array} metrics     array of string like ['good', 'bad']
+   * @param {object} metrics     object of string like {'good':0, 'bad':0}
    */
   setMetrics(metrics) {
     this.metrics = metrics

