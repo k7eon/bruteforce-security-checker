@@ -76,7 +76,7 @@ const {Service} = require('@k7eon/bruteforce-security-checker');
           'password': password,
         },
         json: true,
-      } // like 'request/request' lib
+      };
       let {response, body} = this.r(config, agent);
       
       if (!body.success) return null;
@@ -116,11 +116,13 @@ b.start({
   THREADS:      1,
   whatToQueue:  'accounts',
   useProxy:     true,
+  // handlerFunc execute by every account
   handlerFunc: async (task, agent) => {
+    /* workflow start */
     let account = task;
     console.log('account', account);
     let {email, password} = account;
-
+    
     try {
       let cookie = await mySite.login(email, password, agent);
 
@@ -142,6 +144,7 @@ b.start({
       fs.appendFileSync(FILE.errors, `${JSON.stringify({account, proxy: agent.options.host})}\n${e.stack}\n\n`);
       return {agent};
     }
+    /* end workflow */
   },
   drainCallback: () => {
     console.log('All accounts are checked');
@@ -176,6 +179,7 @@ brute.start({
   THREADS: 1000,
   whatToQueue: 'agents',
   handlerFunc: async (task, t) => {
+    /* workflow start */
     let agent = task;
 
     try {
@@ -193,6 +197,7 @@ brute.start({
       // This proxy are not needed.
     }
     return {task, agent: t};
+    /* end workflow */
   },
   drainCallback: () => {
     console.log('drainCallback');
