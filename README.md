@@ -4,8 +4,6 @@ By this module you can:
 1. Test site for bruteforce security by implement HTTP/WS login requests
 2. Test site accessibility on mass user signups.
 
-Examples of usage in **/examples** directory
-
 
 ## Table of contents
 
@@ -33,7 +31,7 @@ const {bruteforce} = require('@k7eon/bruteforce-security-checker');
 
 ---------------------------------
 # Service class
-Service is a class with some usefully methods
+Service is a class with some usefully methods for implement HTTP request
 
 include:
 ```js
@@ -44,6 +42,7 @@ const {Service} = require('@k7eon/bruteforce-security-checker');
 
 ---------------------------------
 ## Examples
+
 
 ---------------------------------
 #### Example of *Service* usage
@@ -93,6 +92,7 @@ More about request configs [there](https://github.com/request/request)
 ---------------------------------
 #### Example of *Bruteforce* with *MySiteClass*
 ```js
+// login.js
 const fs     = require('fs');
 const b      = require('@k7eon/bruteforce-security-checker').bruteforce;
 const mySite = require('./MySiteClass');
@@ -148,17 +148,19 @@ b.start({
   }
 });
 ```
+- Run ```node login.js```
+
 
 ---------------------------------
 #### Bruteforce proxy checker example
-- Create proxy_checker.js and put content below:
 ```js
+// proxy_checker.js
 const request = require('request');
 const rp = require('request-promise');
 const brute = require('@k7eon/bruteforce-security-checker').bruteforce;
 const FILE = {
-  proxies:        'files/proxy.txt',
-  valid_proxies:  'files/valid_proxies.txt',
+  proxies:        'proxy.txt',
+  valid_proxies:  'valid_proxies.txt',
 };
 // create empty files in they are not exists. Be careful, 
 // create directory 'files' if not exists
@@ -197,6 +199,5 @@ brute.start({
   }
 });
 ```
-- Create directory **files**
 - Put some proxies in **files/proxy.txt**
 - Run ```node proxy_checker.js```
