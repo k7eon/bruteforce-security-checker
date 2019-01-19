@@ -58,7 +58,7 @@ class BruteForce {
    * You can define own methods for mutate left and right line half.
    * Please don`t load more than 1kk lines. It so slow.
    *
-   * example:
+   * @example
    *  let r = loadAccounts2({
    *    path: 'files/source.txt',
    *    leftName: 'email',
