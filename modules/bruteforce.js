@@ -19,79 +19,6 @@ class BruteForce {
   }
 
   /**
-   * DEPRECATED, use this.showMetics instead
-   * Create metrics object like counter to monitor custom metrics
-   * @deprecated
-   * @param {object} metrics     object of string like {'good':0, 'bad':0}
-   */
-  setMetrics(metrics) {
-    this.metrics = metrics
-  }
-
-  /**
-   * DEPRECATED, use this.showMetics instead
-   * start interval showing metrics
-   * @deprecated
-   * @param {number} interval    ms, interval of console.log
-   */
-  startShowingMetrics(interval = 10000) {
-    this.metricsInterval = setInterval(() => {
-      console.log(this._getMetrics());
-    }, interval);
-  }
-
-  /**
-   * DEPRECATED use this.loadAccounts instead
-   * @deprecated
-   * @param {string] path
-   * @return {Array}       like {login, email, password}[]
-   */
-  loadRegisteredAccounts(path = 'files/registered.log') {
-    let registered = fs.readFileSync(path, 'utf8').split('\n');
-
-    let accounts = _.compact(_.map(registered, (line) => {
-      if (!line) return null;
-
-      let login = line.split('::')[0];
-      let email = line.split('::')[1].split(':')[0];
-      let password = line.split('::')[1].split(':')[1];
-
-      password = password.replace('\r', '');
-      return {login, email, password};
-    }));
-
-    this.accounts = accounts;
-    console.log('Success load registered accounts:', accounts.length);
-    return accounts;
-  }
-
-  /**
-   * DEPRECATED use this.removeAccountsBy instead
-   * @deprecated
-   * Remove all lines from this.accounts that includes 'email' attr in 'path' file
-   * Update this.accounts
-   * @param {string} by          any attribute from this.accounts[0]
-   * @param {string} path        path to file whose lines must be removed from this.accounts
-   * @return {Array}
-   */
-  removeAccountsFrom(by='email', path = 'files/bad.log') {
-    if (!this.accounts.length) throw new Error('Load account before remove bad!');
-
-    let bad = fs.readFileSync(path, 'utf8');
-    let accounts = _.filter(this.accounts, (account) => {
-      let thing = account[by];
-      return (bad.indexOf(thing) === -1);
-    });
-
-    let before = this.accounts.length;
-    let now = accounts.length;
-    let removed = before-now;
-    console.log('Success remove bads', {removed, now});
-    this.accounts = accounts;
-    return accounts;
-  }
-
-  /**
    * NEW this method replace this.setMetrics and this.startShowingMetrics in to one method
    * Create metrics object like counter to monitor custom metrics
    * start interval showing metrics
@@ -404,6 +331,80 @@ class BruteForce {
     fs.appendFileSync(path, line+'\n');
     if (metricsName) this.metrics[metricsName]++;
   }
+
+  /**
+   * DEPRECATED, use this.showMetics instead
+   * Create metrics object like counter to monitor custom metrics
+   * @deprecated
+   * @param {object} metrics     object of string like {'good':0, 'bad':0}
+   */
+  setMetrics(metrics) {
+    this.metrics = metrics
+  }
+
+  /**
+   * DEPRECATED, use this.showMetics instead
+   * start interval showing metrics
+   * @deprecated
+   * @param {number} interval    ms, interval of console.log
+   */
+  startShowingMetrics(interval = 10000) {
+    this.metricsInterval = setInterval(() => {
+      console.log(this._getMetrics());
+    }, interval);
+  }
+
+  /**
+   * DEPRECATED use this.loadAccounts instead
+   * @deprecated
+   * @param {string] path
+   * @return {Array}       like {login, email, password}[]
+   */
+  loadRegisteredAccounts(path = 'files/registered.log') {
+    let registered = fs.readFileSync(path, 'utf8').split('\n');
+
+    let accounts = _.compact(_.map(registered, (line) => {
+      if (!line) return null;
+
+      let login = line.split('::')[0];
+      let email = line.split('::')[1].split(':')[0];
+      let password = line.split('::')[1].split(':')[1];
+
+      password = password.replace('\r', '');
+      return {login, email, password};
+    }));
+
+    this.accounts = accounts;
+    console.log('Success load registered accounts:', accounts.length);
+    return accounts;
+  }
+
+  /**
+   * DEPRECATED use this.removeAccountsBy instead
+   * @deprecated
+   * Remove all lines from this.accounts that includes 'email' attr in 'path' file
+   * Update this.accounts
+   * @param {string} by          any attribute from this.accounts[0]
+   * @param {string} path        path to file whose lines must be removed from this.accounts
+   * @return {Array}
+   */
+  removeAccountsFrom(by='email', path = 'files/bad.log') {
+    if (!this.accounts.length) throw new Error('Load account before remove bad!');
+
+    let bad = fs.readFileSync(path, 'utf8');
+    let accounts = _.filter(this.accounts, (account) => {
+      let thing = account[by];
+      return (bad.indexOf(thing) === -1);
+    });
+
+    let before = this.accounts.length;
+    let now = accounts.length;
+    let removed = before-now;
+    console.log('Success remove bads', {removed, now});
+    this.accounts = accounts;
+    return accounts;
+  }
+
 }
 
 module.exports = new BruteForce();
