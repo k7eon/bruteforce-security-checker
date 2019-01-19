@@ -59,7 +59,7 @@ class BruteForce {
    * Please don`t load more than 1kk lines. It so slow.
    *
    * @example
-   *  let r = loadAccounts2({
+   *  let r = loadAccounts({
    *    path: 'files/source.txt',
    *    leftName: 'email',
    *    rightName: 'password',
@@ -79,6 +79,7 @@ class BruteForce {
    *      // return {password, p2: password};
    *    },
    *  })
+   *  // return {email, password}[]
    *
    * @param {object|string} opts - object or path string
    * @param {string}   opts.path           required. Path to file with accounts
@@ -183,8 +184,8 @@ class BruteForce {
    * todo http proxy support
    * File contain lines like: "128.12.1.1:1080"
    * Update this.proxies
-   * @param {string} path
-   * @param {boolean} silent    - is need showing message after success loading proxies
+   * @param {string} path       path to file
+   * @param {boolean} silent    is need showing message after success loading proxies
    * @return {Array}
    */
   loadProxies(path = 'files/proxy.txt', silent = false) {
@@ -198,7 +199,7 @@ class BruteForce {
   /**
    * todo http proxy support
    * Loading  proxies and generate this.agents whose are used in http request options
-   * @param {string} path
+   * @param {string} path       path to file
    * @return {Array}
    */
   loadProxyAgents(path = 'files/valid_proxy.txt') {
@@ -308,7 +309,7 @@ class BruteForce {
 
   /**
    * Async timeout implementation
-   * @example 
+   * @example
    *   await this.timeout(5000)
    * @param {number} ms
    * @return {Promise<any>}
