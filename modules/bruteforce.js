@@ -328,9 +328,9 @@ class BruteForce {
 
   /**
    * write content to file + '\n' and increase metrics counter if needed
-   * @param path
-   * @param line
-   * @param metricsName
+   * @param path            destination path
+   * @param line            line to write
+   * @param metricsName     what metrics must be increased by 1
    */
   save(path, line, metricsName = null) {
     fs.appendFileSync(path, line+'\n');
