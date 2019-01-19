@@ -242,19 +242,24 @@ class BruteForce {
 
   /**
    * Start processing
-   * handlerFunc example: async (task,agent)=>{ try/catch, return {agent?} }. if return {agent} then will call this.returnAgent
    *
-   * opts = {
-   *   {integer}    THREADS         threads amount
-   *   {function}   handlerFunc     required.
-   *   {string}     whatToQueue     from this. context. ('accounts' or 'agents')
-   *   {string}     startMessage    this will print on bruteforce start checking
-   *   {string}     drainMessage    this will print when all tasks are processed
-   *   {function}   drainCallback   required. Callback when all tasks are processed
-   *   {boolean}    useProxy        default false
-   * }
+   * @example
+   *   // handlerFunc
+   *   handlerFunc: async (task,agent) => {
+   *     try { }
+   *     catch(e) {}
+   *     return {agent?}
+   *   }.
+   *   // if return {agent} then will call this.returnAgent
    *
-   * @param {object} opts
+   * @param {object}     opts
+   * @param {number}     opts.THREADS         threads amount
+   * @param {function}   opts.handlerFunc     required.
+   * @param {string}     opts.whatToQueue     from this. context. ('accounts' or 'agents')
+   * @param {string}     opts.startMessage    this will print on bruteforce start checking
+   * @param {string}     opts.drainMessage    this will print when all tasks are processed
+   * @param {function}   opts.drainCallback   required. Callback when all tasks are processed
+   * @param {boolean}    opts.useProxy        default false
    * @returns {boolean}
    */
   start(opts) {
@@ -303,7 +308,8 @@ class BruteForce {
 
   /**
    * Async timeout implementation
-   * Usage: await this.timeout(5000)
+   * @example 
+   *   await this.timeout(5000)
    * @param {number} ms
    * @return {Promise<any>}
    */
