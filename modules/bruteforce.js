@@ -58,15 +58,6 @@ class BruteForce {
    * You can define own methods for mutate left and right line half.
    * Please don`t load more than 1kk lines. It so slow.
    *
-   * opts = {
-   *   {string}   path           required. Path to file with accounts
-   *   {string}   leftName       default 'email'. The of the left half
-   *   {string}   rightName      default 'password'. The of the right half.
-   *   {string}   delimiter      default /:|;/ . The delimiter between 'email' and 'password'
-   *   {function} leftCallback   default null. May be (email) => {} Must return null, string or object
-   *   {function} rightCallback  default null. May be (password) => {} Must return null, string or object
-   * }
-   *
    * example:
    *  let r = loadAccounts2({
    *    path: 'files/source.txt',
@@ -90,6 +81,13 @@ class BruteForce {
    *  })
    *
    * @param {object|string} opts - object or path string
+   * @param {string}   opts.path           required. Path to file with accounts
+   * @param {string}   opts.leftName       default 'email'. The of the left half
+   * @param {string}   opts.rightName      default 'password'. The of the right half.
+   * @param {string}   opts.delimiter      default /:|;/ . The delimiter between 'email' and 'password'
+   * @param {function} opts.leftCallback   default null. May be (email) => {} Must return null, string or object
+   * @param {function} opts.rightCallback  default null. May be (password) => {} Must return null, string or object
+   *
    * @return {Array}
    */
   loadAccounts(opts) {
