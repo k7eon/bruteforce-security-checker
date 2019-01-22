@@ -3,6 +3,8 @@ const fs      = require('fs');
 const brute   = require('../index').bruteforce; // in prod: require('@k7eon/bruteforce-security-checker').bruteforce;
 const Service = require('../index').Service;  // in prod: require('@k7eon/bruteforce-security-checker').Service;
 
+const path = require('path');
+
 /**
  * This things are doing many times. I add this in module
  * Support only socks proxy
@@ -22,9 +24,11 @@ class ProxyChecker extends Service {
       THREADS = 1000,
       timeout=60000) {
 
+    let currentDir = path.dirname(require.main.filename);
+
     let FILE = {
-      proxies:        startPath,
-      valid_proxies:  endPath,
+      proxies:        path.normalize(currentDir+'/'+startPath),
+      valid_proxies:  path.normalize(currentDir+'/'+endPath),
     };
 
     brute.createFilesIfNotExists(FILE);
