@@ -1,8 +1,13 @@
 {
   "name": "@k7eon/bruteforce-security-checker",
-  "version": "1.1.02",
+  "version": "1.1.05",
   "description": "",
-  "keywords": ["bruteforce", "brute", "checker", "bruteforce security"],
+  "keywords": [
+    "bruteforce",
+    "brute",
+    "checker",
+    "bruteforce security"
+  ],
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -21,6 +26,7 @@
   "dependencies": {
     "async": "^2.6.1",
     "fs": "0.0.1-security",
+    "http-proxy-agent": "^2.1.0",
     "lodash": "^4.17.11",
     "request": "^2.88.0",
     "socks-proxy-agent": "^4.0.1"

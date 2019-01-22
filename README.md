@@ -41,7 +41,7 @@ const {Service} = require('@k7eon/bruteforce-security-checker');
 
 ---------------------------------
 # ProxyChecker
-Return created class that are ready to check socks proxies from files:
+Return created class that are ready to check 'http' proxies from files:
 
 usage:
 ```js
@@ -50,6 +50,7 @@ const proxyChecker = require('@k7eon/bruteforce-security-checker').proxyChecker;
 proxyChecker.run(
   'files/proxy.txt',
   'files/valid_proxies.txt',
+  'http', // proxy type 'http' or 'socks'
   100,    // threads,
   60000,  // timeout in ms
 );

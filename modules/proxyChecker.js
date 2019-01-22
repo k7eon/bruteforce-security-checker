@@ -1,6 +1,6 @@
-const fs    = require('fs');
+const fs      = require('fs');
 // const rp    = require('request-promise');
-const brute = require('../index').bruteforce; // in prod: require('@k7eon/bruteforce-security-checker').bruteforce;
+const brute   = require('../index').bruteforce; // in prod: require('@k7eon/bruteforce-security-checker').bruteforce;
 const Service = require('../index').Service;  // in prod: require('@k7eon/bruteforce-security-checker').Service;
 
 /**
@@ -12,10 +12,16 @@ class ProxyChecker extends Service {
    *
    * @param startPath     file to load proxy. Lines like 123.321.321.33:31233
    * @param endPath       file to store valid proxies
+   * @param proxyType     'http' or 'socks'
    * @param THREADS       amount of thread running in parallel
    * @param timeout       amount of milliseconds to wait response
    */
-  run(startPath = 'files/proxy.txt', endPath = 'files/valid_proxies.txt', THREADS = 1000, timeout=60000) {
+  run(startPath = 'files/proxy.txt',
+      endPath = 'files/valid_proxies.txt',
+      proxyType='http',
+      THREADS = 1000,
+      timeout=60000) {
+
     let FILE = {
       proxies:        startPath,
       valid_proxies:  endPath,
@@ -28,7 +34,7 @@ class ProxyChecker extends Service {
 
     brute.showMetrics({'active': 0}, 3000);
 
-    brute.loadProxyAgents(FILE.proxies);
+    brute.loadProxyAgents(FILE.proxies, proxyType);
     brute.start({
       THREADS: THREADS,
       whatToQueue: 'agents',
