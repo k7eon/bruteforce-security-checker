@@ -119,7 +119,7 @@ class BruteForce {
 
       let r = {};
 
-      console.log([left, right]);
+      // console.log([left, right]);
 
       if (leftCallback) {
         let newLeft = leftCallback(left);
