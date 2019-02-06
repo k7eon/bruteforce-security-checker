@@ -9,8 +9,6 @@ class Service {
    * @param agent     - for convenience. agent by 'request'.agent
    * @return {Promise<{response, body}>}
    * @throws any errors on request
-   * @throws "Request die" if request timeout not executed.
-   *         It usefull to backconnect proxies (in my case they not call default request.timeout sometimes)
    */
   async r(config, agent = null) {
     return new Promise((resolve, reject) => {
@@ -18,8 +16,9 @@ class Service {
 
       if (!config.timeout) _.assign(config, {timeout: 60*1000});
 
-      let t = setTimeout(() => {
-        return reject(new Error("Request die..."));
+      let t = setTimeout(async () => {
+        // console.log('request die');
+        return resolve(await this.r(config, agent));
       }, config.timeout+2*1000);
 
       request(config, (error, response, body) => {
