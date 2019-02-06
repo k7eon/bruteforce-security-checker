@@ -1,6 +1,7 @@
 const _      = require('lodash');
 const fs     = require('fs');
 const async  = require('async');
+const HttpsProxyAgent = require('https-proxy-agent');
 const HttpProxyAgent = require('http-proxy-agent');
 const SocksProxyAgent = require('socks-proxy-agent');
 
@@ -202,7 +203,7 @@ class BruteForce {
    * Loading  proxies and generate this.agents whose are used in http request options
    * To set socks proxy pass 'false
    * @param {string} path       path to file
-   * @param {string} type       default='http'. May be 'socks'
+   * @param {string} type       default='http'. ('http' or 'https' or 'socks')
    * @return {Array}
    */
   loadProxyAgents(path = 'files/valid_proxy.txt', type='http') {
@@ -210,6 +211,7 @@ class BruteForce {
     let agents = _.compact(_.map(proxies, (proxy) => {
       if (!proxy) return null;
       if (type === 'http')  return new HttpProxyAgent('http://' + proxy);
+      if (type === 'https') return new HttpsProxyAgent('http://' + proxy);
       if (type === 'socks') return new SocksProxyAgent('socks://' + proxy);
     }));
     this.agents = agents;

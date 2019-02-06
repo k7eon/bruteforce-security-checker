@@ -5,6 +5,9 @@ By this module you can:
 2. Test site accessibility on mass user signups.
 
 
+v1.1.1
+- added https proxy support. Now 'http', 'https' and 'socks'.
+
 ## Table of contents
 
 - [Installation](#installation)
@@ -50,7 +53,7 @@ const proxyChecker = require('@k7eon/bruteforce-security-checker').proxyChecker;
 proxyChecker.run(
   'files/proxy.txt',
   'files/valid_proxies.txt',
-  'http', // proxy type 'http' or 'socks'
+  'http', // proxy type 'http' or 'https' or 'socks'
   100,    // threads,
   60000,  // timeout in ms
 );

@@ -1,6 +1,6 @@
 {
   "name": "@k7eon/bruteforce-security-checker",
-  "version": "1.1.07",
+  "version": "1.1.1",
   "description": "",
   "keywords": [
     "bruteforce",
@@ -27,8 +27,10 @@
     "async": "^2.6.1",
     "fs": "0.0.1-security",
     "http-proxy-agent": "^2.1.0",
+    "https-proxy-agent": "^2.2.1",
+    "socks-proxy-agent": "^4.0.1",
     "lodash": "^4.17.11",
-    "request": "^2.88.0",
-    "socks-proxy-agent": "^4.0.1"
-  }
+    "request": "^2.88.0"
+  },
+  "devDependencies": {}
 }

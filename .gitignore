@@ -7,3 +7,7 @@ jsdocRender.js
 conf.json
 DOC.md
 package-lock.json
+test.js
+0_*
+1_*
+123*
