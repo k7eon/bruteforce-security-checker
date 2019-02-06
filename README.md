@@ -5,6 +5,9 @@ By this module you can:
 2. Test site accessibility on mass user signups.
 
 
+v1.1.2
+- some updates to support backconnect proxies.
+- changed proxy agent creation. Through "proxy-agent" lib now.
 v1.1.1
 - added https proxy support. Now 'http', 'https' and 'socks'.
 
