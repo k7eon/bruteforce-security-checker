@@ -5,9 +5,16 @@ By this module you can:
 2. Test site accessibility on mass user signups.
 
 
+
+v1.1.22
+- bug fixes with proxy types. Sometimes good one lib. Sometimes another "b.loadProxyAgents" or "b.loadProxyAgentsV2".
+
+
 v1.1.2
 - some updates to support backconnect proxies.
 - changed proxy agent creation. Through "proxy-agent" lib now.
+
+
 v1.1.1
 - added https proxy support. Now 'http', 'https' and 'socks'.
 
