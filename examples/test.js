@@ -24,3 +24,4 @@ b.removeAccountsBy('email', [FILE.r, FILE.r]);
 //   },
 // }));
 
+const proxyChecker = require('../index').proxyChecker; // in prod: require('@k7eon/bruteforce-security-checker').proxyChecker;
