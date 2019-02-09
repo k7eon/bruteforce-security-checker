@@ -1,9 +1,9 @@
 const _      = require('lodash');
 const fs     = require('fs');
 const async  = require('async');
-// const HttpsProxyAgent = require('https-proxy-agent');
-// const HttpProxyAgent = require('http-proxy-agent');
-// const SocksProxyAgent = require('socks-proxy-agent');
+const HttpsProxyAgent = require('https-proxy-agent');
+const HttpProxyAgent = require('http-proxy-agent');
+const SocksProxyAgent = require('socks-proxy-agent');
 const ProxyAgent = require('proxy-agent');
 
 class BruteForce {
