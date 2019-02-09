@@ -5,6 +5,10 @@ By this module you can:
 2. Test site accessibility on mass user signups.
 
 
+v1.1.32
+- fixes with service.r
+
+
 v1.1.3
 - added "service.rCloudFlare" to bypass cloudflare
 

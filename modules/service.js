@@ -18,9 +18,12 @@ class Service {
       if (!config.timeout) _.assign(config, {timeout: 60*1000});
 
       let t = setTimeout(async () => {
-        // console.log('request die');
-        if (retryCount === 0) return reject("r.retryCount === 0");
-        return resolve(await this.r(config, agent, retryCount-1));
+        try {
+          if (retryCount === 0) return reject("r.retryCount === 0");
+          return resolve(await this.r(config, agent, retryCount-1));
+        } catch (e) {
+          return reject(e);
+        }
       }, config.timeout+2*1000);
 
       request(config, (error, response, body) => {
@@ -44,9 +47,12 @@ class Service {
       if (!config.timeout) _.assign(config, {timeout: 60*1000});
 
       let t = setTimeout(async () => {
-        // console.log('request die');
-        if (retryCount === 0) return reject("r.retryCount === 0");
-        return resolve(await this.r(config, agent, retryCount-1));
+        try {
+          if (retryCount === 0) return reject("r.retryCount === 0");
+          return resolve(await this.r(config, agent, retryCount-1));
+        } catch (e) {
+          return reject(e);
+        }
       }, config.timeout+2*1000);
 
       requestCloudflare.request(config, (error, response, body) => {
