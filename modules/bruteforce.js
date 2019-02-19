@@ -113,7 +113,7 @@ class BruteForce {
     let {path, leftName, rightName, delimiter, leftCallback, rightCallback} = opts;
     if (stringPath) path = stringPath; // and this
 
-    let source = fs.readFileSync(path, 'utf8').split('\n');
+    let source = fs.readFileSync(path, 'utf8').replace(/\r/g,'').split('\n');
 
     let accounts = _.compact(_.map(source, (line) => {
       if (!line) return null;
@@ -160,12 +160,14 @@ class BruteForce {
    * @return {Array}
    */
   removeAccountsBy(by='email', path = 'files/bad.log') {
-    if (!this.accounts.length) throw new Error('Load account before remove bad!');
+    if (!this.accounts.length) throw new Error('Load account before remove them!');
 
     let paths = (typeof path === 'string') ? [path] : path;
     let accounts = null;
 
     for (let path of paths) {
+      console.time(`Success removed from ${path}`);
+
       let source = fs.readFileSync(path, 'utf8');
 
       let accounts = _.filter(this.accounts, (account) => {
@@ -176,10 +178,88 @@ class BruteForce {
       let before = this.accounts.length;
       let now = accounts.length;
       let removed = before-now;
-      console.log(`Success removed from ${path}`, {removed, now});
 
       this.accounts = accounts;
+      console.timeEnd(`Success removed from ${path}`);
+      console.log(`Success removed from ${path}`, {removed, now});
+
     }
+    return accounts;
+  }
+
+  /**
+   * More faster way than removeAccountsBy more than x10
+   * Remove all lines from this.accounts that includes 'email' attr in 'path' file
+   * Update this.accounts
+   * @param {string} by          any attribute from this.accounts[0]
+   * @param {string|array} path  path/s to file whose lines will be removed from this.accounts through indexOf
+   * @return {Array}
+   */
+  removeAccountsV2By(by='email', path = 'files/bad.log') {
+    if (!this.accounts.length) throw new Error('Load account before remove them!');
+
+    let paths = (typeof path === 'string') ? [path] : path;
+    let accounts = [];
+
+
+    for (let path of paths) {
+      console.time(`Success removed from ${path}`);
+
+      let source = fs.readFileSync(path, 'utf8').split('\n');
+
+      let tree = {};
+
+      // console.time('generating tree:');
+      for (let i = 0; i < source.length; i++) {
+        let line = source[i].replace('\r', '');
+
+        let c1 = line[0];  if (tree[c1] === undefined) tree[c1] = {};
+        let c2 = line[1];  if (tree[c1][c2] === undefined) tree[c1][c2] = {};
+        let c3 = line[2];  if (tree[c1][c2][c3] === undefined) tree[c1][c2][c3] = {};
+        let c4 = line[3];  if (tree[c1][c2][c3][c4] === undefined) tree[c1][c2][c3][c4] = {};
+        let c5 = line[4];  if (tree[c1][c2][c3][c4][c5] === undefined) tree[c1][c2][c3][c4][c5] = '';
+
+        tree[c1][c2][c3][c4][c5] += line;
+      }
+      // console.timeEnd('generating tree:');
+
+      let results = [];
+      // console.time('filtering:');
+      for (let i = 0; i < this.accounts.length; i++) {
+        const account = this.accounts[i];
+
+        let thing = account[by];
+
+        let c1 = thing[0];
+        let c2 = thing[1];
+        let c3 = thing[2];
+        let c4 = thing[3];
+        let c5 = thing[4];
+
+        if (!tree[c1] || !tree[c1][c2] || !tree[c1][c2][c3] || !tree[c1][c2][c3][c4] || !tree[c1][c2][c3][c4][c5]) {
+          results.push(account);
+          continue;
+        }
+
+        let block = tree[c1][c2][c3][c4][c5];
+
+        if (block.indexOf(thing) === -1) {
+          results.push(account);
+          continue;
+        }
+      }
+      // console.timeEnd('filtering:');
+      accounts = results;
+
+      let before = this.accounts.length;
+      let now = accounts.length;
+      let removed = before-now;
+      this.accounts = accounts;
+
+      console.timeEnd(`Success removed from ${path}`);
+      console.log(`Success removed from ${path}`, {removed, now});
+    }
+
     return accounts;
   }
 
@@ -192,7 +272,7 @@ class BruteForce {
    * @return {Array}
    */
   loadProxies(path = 'files/proxy.txt', silent = false) {
-    let source = fs.readFileSync(path, 'utf8');
+    let source = fs.readFileSync(path, 'utf8').replace(/\r/g,'');
     let proxies = _.compact(source.split('\n'));
     this.proxies = proxies;
     if (silent) console.log('Success load proxies:', proxies.length);

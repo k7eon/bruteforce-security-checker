@@ -9,6 +9,8 @@ let FILE = {
 };
 
 b.loadAccounts(FILE.s);
+b.removeAccountsV2By('email', [FILE.r, FILE.r]);
+b.loadAccounts(FILE.s);
 b.removeAccountsBy('email', [FILE.r, FILE.r]);
 
 // console.log('loadAccounts', loadAccounts({

@@ -5,6 +5,10 @@ By this module you can:
 2. Test site accessibility on mass user signups.
 
 
+v1.1.4
+- add new method **b.removeAccountsV2By** that >10x faster than **removeAccountsBy**
+- add removing "\r" in b.loadAccounts because Windows are amazing :D
+
 v1.1.32
 - fixes with service.r
 
