@@ -118,8 +118,13 @@ class BruteForce {
     let accounts = _.compact(_.map(source, (line) => {
       if (!line) return null;
 
-      let [left, right] = line.split(delimiter);
-
+      delimiter = ';';
+      let d1 = line.indexOf(';');
+      let d2 = line.indexOf(':');
+      if (d1 === -1 || d1 > d2) delimiter = ':';
+      let left = line.substring(0, line.indexOf(delimiter));
+      let right = line.substring(line.indexOf(delimiter)+1);
+      
       let r = {};
 
       // console.log([left, right]);
