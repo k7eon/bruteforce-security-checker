@@ -117,7 +117,7 @@ class BruteForce {
 
     let accounts = _.compact(_.map(source, (line) => {
       if (!line) return null;
-      
+
 
       delimiter = ';';
       let d1 = line.indexOf(';');
