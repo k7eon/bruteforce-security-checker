@@ -4,31 +4,6 @@ By this module you can:
 1. Test site for bruteforce security by implement HTTP/WS login requests
 2. Test site accessibility on mass user signups.
 
-
-v1.1.4
-- add new method **b.removeAccountsV2By** that >10x faster than **removeAccountsBy**
-- add removing "\r" in b.loadAccounts because Windows are amazing :D
-
-v1.1.32
-- fixes with service.r
-
-
-v1.1.3
-- added "service.rCloudFlare" to bypass cloudflare
-
-
-v1.1.22
-- bug fixes with proxy types. Sometimes good one lib. Sometimes another "b.loadProxyAgents" or "b.loadProxyAgentsV2".
-
-
-v1.1.2
-- some updates to support backconnect proxies.
-- changed proxy agent creation. Through "proxy-agent" lib now.
-
-
-v1.1.1
-- added https proxy support. Now 'http', 'https' and 'socks'.
-
 ## Table of contents
 
 - [Installation](#installation)

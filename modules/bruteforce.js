@@ -122,7 +122,15 @@ class BruteForce {
       delimiter = ';';
       let d1 = line.indexOf(';');
       let d2 = line.indexOf(':');
-      if (d1 === -1 || d1 > d2) delimiter = ':';
+      // if (d1 === -1 || d1 > d2) delimiter = ':';
+
+      if (d1 > -1 && d2 === -1) delimiter = ';';
+      if (d2 > -1 && d1 === -1) delimiter = ':';
+      if (d2 > -1 && d1 > -1) {
+        if (d1 < d2) delimiter = ';';
+        if (d1 > d2) delimiter = ':';
+      }
+
       let left = line.substring(0, line.indexOf(delimiter));
       let right = line.substring(line.indexOf(delimiter)+1);
 
